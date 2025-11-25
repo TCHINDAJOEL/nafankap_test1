@@ -23,20 +23,6 @@ I have refactored the application to align with the **NAFANKAP SRS & SDS** requi
 *   **Driver Assignment**: Improved flow to assign or change a delivery partner.
 *   **Price Override**: You can now manually edit the **Total Amount** of an order before generating the invoice, allowing for custom pricing or discounts.
 
-### 5. Invoicing (F-BILL)
-*   **PDF Preview**: You can now click **Aperçu** to view the invoice directly in the browser before downloading it.
-*   **PDF Generation**: Click **PDF** to download the professional invoice file.
-*   **Send Functionality**: An "Envoyer" button allows you to simulate sending the invoice via WhatsApp or Email (mocked for now).
-
-### 6. Analytics (F-ANALYT)
-*   **Correct Margin Calculation**: Fixed issues where margins were not calculating correctly due to missing cost data. Now uses the FIFO allocation costs.
-*   **Supplier Stats**: Correctly links sold items to their suppliers to show which suppliers generate the most profit.
-*   **Geo Analysis**: Correctly aggregates sales by city based on delivery addresses.
-
-### 7. Data Model Updates
-*   **Multi-tenancy**: Added `tenantId` to all data entities to support the multi-tenant architecture.
-*   **Suppliers**: Added a dedicated Supplier entity linked to product batches.
-
 ## Project Structure
 
 ```

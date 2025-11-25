@@ -18,7 +18,7 @@ const MOCK_TENANT = {
     email: "contact@dakarelec.sn"
 };
 
-export const OrdersView = ({ orders, setOrders, deliveryPartners, openOrderModal, setIsPartnerModalOpen }) => {
+export const OrdersView = ({ orders, setOrders, deliveryPartners, setDeliveryPartners, deliveryCompanies, setDeliveryCompanies, openOrderModal }) => {
     const [subTab, setSubTab] = useState('list'); // 'list' or 'partners'
     const [filterStatus, setFilterStatus] = useState('Tout');
     const [selectedOrder, setSelectedOrder] = useState(null); // For details view
@@ -101,13 +101,94 @@ export const OrdersView = ({ orders, setOrders, deliveryPartners, openOrderModal
         return order.totalAmount - totalCost;
     };
 
+    // Feature: Delivery Management
+    const [activeDeliveryTab, setActiveDeliveryTab] = useState('partners'); // 'partners' or 'companies'
+
+    // Edit States
+    const [editingPartner, setEditingPartner] = useState(null);
+    const [editingCompany, setEditingCompany] = useState(null);
+    const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
+    const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
+
+    // Form Data States
+    const [partnerFormData, setPartnerFormData] = useState({ name: '', phone: '', type: 'Indépendant', companyId: '', zone: '', city: '', district: '' });
+    const [companyFormData, setCompanyFormData] = useState({ name: '', phone: '', coverage: '', status: 'Actif' });
+
+    // Handlers for Partners
+    const handleEditPartner = (partner) => {
+        setEditingPartner(partner);
+        setPartnerFormData({
+            name: partner.name,
+            phone: partner.phone,
+            type: partner.type,
+            companyId: partner.companyId || '',
+            zone: partner.zone,
+            city: partner.city || '',
+            district: partner.district || ''
+        });
+        setIsPartnerModalOpen(true);
+    };
+
+    const handleNewPartner = () => {
+        setEditingPartner(null);
+        setPartnerFormData({ name: '', phone: '', type: 'Indépendant', companyId: '', zone: '', city: '', district: '' });
+        setIsPartnerModalOpen(true);
+    };
+
+    const handleSavePartner = () => {
+        const newPartner = {
+            id: editingPartner ? editingPartner.id : Date.now(),
+            ...partnerFormData,
+            companyId: partnerFormData.type === 'Agence' ? parseInt(partnerFormData.companyId) : null
+        };
+
+        if (editingPartner) {
+            setDeliveryPartners(deliveryPartners.map(p => p.id === editingPartner.id ? newPartner : p));
+        } else {
+            setDeliveryPartners([...deliveryPartners, newPartner]);
+        }
+        setIsPartnerModalOpen(false);
+    };
+
+    // Handlers for Companies
+    const handleEditCompany = (company) => {
+        setEditingCompany(company);
+        setCompanyFormData({
+            name: company.name,
+            phone: company.phone,
+            coverage: company.coverage,
+            status: company.status
+        });
+        setIsCompanyModalOpen(true);
+    };
+
+    const handleNewCompany = () => {
+        setEditingCompany(null);
+        setCompanyFormData({ name: '', phone: '', coverage: '', status: 'Actif' });
+        setIsCompanyModalOpen(true);
+    };
+
+    const handleSaveCompany = () => {
+        const newCompany = {
+            id: editingCompany ? editingCompany.id : Date.now(),
+            ...companyFormData
+        };
+
+        if (editingCompany) {
+            setDeliveryCompanies(deliveryCompanies.map(c => c.id === editingCompany.id ? newCompany : c));
+        } else {
+            setDeliveryCompanies([...deliveryCompanies, newCompany]);
+        }
+        setIsCompanyModalOpen(false);
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold tracking-tight">Commandes</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Commandes & Livraison</h2>
                 <div className="flex gap-2">
-                    <Button variant={subTab === 'list' ? 'default' : 'outline'} onClick={() => setSubTab('list')}>Liste</Button>
-                    <Button variant={subTab === 'partners' ? 'default' : 'outline'} onClick={() => setSubTab('partners')}>Livreurs</Button>
+                    <Button variant={subTab === 'list' ? 'default' : 'outline'} onClick={() => setSubTab('list')}>Commandes</Button>
+                    <Button variant={subTab === 'partners' ? 'default' : 'outline'} onClick={() => setSubTab('partners')}>Livraison</Button>
                 </div>
             </div>
 
@@ -176,29 +257,86 @@ export const OrdersView = ({ orders, setOrders, deliveryPartners, openOrderModal
                     </Card>
                 </>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="col-span-3 flex justify-end">
-                        <Button onClick={() => setIsPartnerModalOpen(true)}>
-                            <Plus className="mr-2 h-4 w-4" /> Nouveau Livreur
-                        </Button>
+                <div className="space-y-6">
+                    {/* Delivery Sub-Tabs */}
+                    <div className="flex gap-4 border-b border-slate-200 dark:border-slate-700">
+                        <button onClick={() => setActiveDeliveryTab('partners')} className={`pb-2 text-sm font-medium border-b-2 transition-colors ${activeDeliveryTab === 'partners' ? 'border-slate-900 dark:border-slate-100 text-slate-900 dark:text-slate-100' : 'border-transparent text-slate-500'}`}>
+                            Livreurs
+                        </button>
+                        <button onClick={() => setActiveDeliveryTab('companies')} className={`pb-2 text-sm font-medium border-b-2 transition-colors ${activeDeliveryTab === 'companies' ? 'border-slate-900 dark:border-slate-100 text-slate-900 dark:text-slate-100' : 'border-transparent text-slate-500'}`}>
+                            Sociétés de Livraison
+                        </button>
                     </div>
-                    {deliveryPartners.map(partner => (
-                        <Card key={partner.id} className="p-4">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold">
-                                    <Truck className="h-5 w-5" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold">{partner.name}</h3>
-                                    <p className="text-xs text-slate-500">{partner.type}</p>
-                                </div>
+
+                    {activeDeliveryTab === 'partners' && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="col-span-3 flex justify-end">
+                                <Button onClick={handleNewPartner}>
+                                    <Plus className="mr-2 h-4 w-4" /> Nouveau Livreur
+                                </Button>
                             </div>
-                            <div className="text-sm space-y-1 text-slate-600">
-                                <p>Zone: {partner.zone}</p>
-                                <p>Tel: {partner.phone}</p>
+                            {deliveryPartners.map(partner => (
+                                <Card key={partner.id} className="p-4">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold">
+                                            <Truck className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold">{partner.name}</h3>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">{partner.type}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-sm space-y-1 text-slate-600 dark:text-slate-400">
+                                        {partner.companyId && (
+                                            <p><span className="font-medium">Société:</span> {deliveryCompanies.find(c => c.id === partner.companyId)?.name}</p>
+                                        )}
+                                        <p><span className="font-medium">Zone:</span> {partner.zone}</p>
+                                        {(partner.city || partner.district) && (
+                                            <p className="text-xs text-slate-500 ml-2">({partner.city} - {partner.district})</p>
+                                        )}
+                                        <p><span className="font-medium">Tel:</span> {partner.phone}</p>
+                                    </div>
+                                    <div className="mt-3 flex justify-end">
+                                        <Button variant="ghost" size="sm" onClick={() => handleEditPartner(partner)}>
+                                            <Edit2 className="h-4 w-4 mr-1" /> Modifier
+                                        </Button>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+
+                    {activeDeliveryTab === 'companies' && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="col-span-3 flex justify-end">
+                                <Button onClick={handleNewCompany}>
+                                    <Plus className="mr-2 h-4 w-4" /> Nouvelle Société
+                                </Button>
                             </div>
-                        </Card>
-                    ))}
+                            {deliveryCompanies.map(company => (
+                                <Card key={company.id} className="p-4">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
+                                            <Truck className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold">{company.name}</h3>
+                                            <Badge variant={company.status === 'Actif' ? 'success' : 'secondary'}>{company.status}</Badge>
+                                        </div>
+                                    </div>
+                                    <div className="text-sm space-y-1 text-slate-600 dark:text-slate-400">
+                                        <p><span className="font-medium">Couverture:</span> {company.coverage}</p>
+                                        <p><span className="font-medium">Tel:</span> {company.phone}</p>
+                                    </div>
+                                    <div className="mt-3 flex justify-end">
+                                        <Button variant="ghost" size="sm" onClick={() => handleEditCompany(company)}>
+                                            <Edit2 className="h-4 w-4 mr-1" /> Modifier
+                                        </Button>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -212,7 +350,10 @@ export const OrdersView = ({ orders, setOrders, deliveryPartners, openOrderModal
                                 className="flex items-center justify-between p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left">
                                 <div>
                                     <p className="font-medium">{partner.name}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">{partner.zone}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        {partner.zone}
+                                        {partner.companyId && ` • ${deliveryCompanies.find(c => c.id === partner.companyId)?.name}`}
+                                    </p>
                                 </div>
                                 <Badge variant="outline">Choisir</Badge>
                             </button>
@@ -374,6 +515,91 @@ export const OrdersView = ({ orders, setOrders, deliveryPartners, openOrderModal
                         }}>
                             Fermer
                         </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal: Edit/New Partner */}
+            <Modal isOpen={!!isPartnerModalOpen} onClose={() => setIsPartnerModalOpen(false)} title={editingPartner ? "Modifier Livreur" : "Nouveau Livreur"}>
+                <div className="space-y-4">
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Nom complet</label>
+                        <Input value={partnerFormData.name} onChange={(e) => setPartnerFormData({ ...partnerFormData, name: e.target.value })} />
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Téléphone</label>
+                        <Input value={partnerFormData.phone} onChange={(e) => setPartnerFormData({ ...partnerFormData, phone: e.target.value })} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-sm font-medium mb-1 block">Type</label>
+                            <Select value={partnerFormData.type} onChange={(e) => setPartnerFormData({ ...partnerFormData, type: e.target.value })}>
+                                <option value="Indépendant">Indépendant</option>
+                                <option value="Agence">Agence</option>
+                            </Select>
+                        </div>
+                        {partnerFormData.type === 'Agence' && (
+                            <div>
+                                <label className="text-sm font-medium mb-1 block">Société</label>
+                                <Select value={partnerFormData.companyId} onChange={(e) => setPartnerFormData({ ...partnerFormData, companyId: e.target.value })}>
+                                    <option value="">Sélectionner...</option>
+                                    {deliveryCompanies.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </Select>
+                            </div>
+                        )}
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Zone de couverture (Générale)</label>
+                        <Input value={partnerFormData.zone} onChange={(e) => setPartnerFormData({ ...partnerFormData, zone: e.target.value })} placeholder="Ex: Dakar & Banlieue" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-sm font-medium mb-1 block">Ville</label>
+                            <Select value={partnerFormData.city} onChange={(e) => setPartnerFormData({ ...partnerFormData, city: e.target.value })}>
+                                <option value="">Toutes</option>
+                                <option value="Dakar">Dakar</option>
+                                <option value="Abidjan">Abidjan</option>
+                            </Select>
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium mb-1 block">Quartier (Optionnel)</label>
+                            <Input value={partnerFormData.district} onChange={(e) => setPartnerFormData({ ...partnerFormData, district: e.target.value })} placeholder="Ex: Plateau" />
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-2 pt-4">
+                        <Button variant="outline" onClick={() => setIsPartnerModalOpen(false)}>Annuler</Button>
+                        <Button onClick={handleSavePartner}>Enregistrer</Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal: Edit/New Company */}
+            <Modal isOpen={!!isCompanyModalOpen} onClose={() => setIsCompanyModalOpen(false)} title={editingCompany ? "Modifier Société" : "Nouvelle Société"}>
+                <div className="space-y-4">
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Nom de la société</label>
+                        <Input value={companyFormData.name} onChange={(e) => setCompanyFormData({ ...companyFormData, name: e.target.value })} />
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Téléphone</label>
+                        <Input value={companyFormData.phone} onChange={(e) => setCompanyFormData({ ...companyFormData, phone: e.target.value })} />
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Couverture</label>
+                        <Input value={companyFormData.coverage} onChange={(e) => setCompanyFormData({ ...companyFormData, coverage: e.target.value })} placeholder="Ex: National" />
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium mb-1 block">Statut</label>
+                        <Select value={companyFormData.status} onChange={(e) => setCompanyFormData({ ...companyFormData, status: e.target.value })}>
+                            <option value="Actif">Actif</option>
+                            <option value="Inactif">Inactif</option>
+                        </Select>
+                    </div>
+                    <div className="flex justify-end gap-2 pt-4">
+                        <Button variant="outline" onClick={() => setIsCompanyModalOpen(false)}>Annuler</Button>
+                        <Button onClick={handleSaveCompany}>Enregistrer</Button>
                     </div>
                 </div>
             </Modal>
