@@ -1,5 +1,5 @@
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // Helper function to format numbers
 const formatAmount = (amount) => {
@@ -79,7 +79,7 @@ export const generateInvoicePDF = (order, tenant, download = true) => {
 
         console.log('Table rows:', tableRows);
 
-        doc.autoTable({
+        autoTable(doc, {
             head: [tableColumn],
             body: tableRows,
             startY: 60,
