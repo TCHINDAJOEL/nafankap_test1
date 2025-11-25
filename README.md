@@ -48,7 +48,3 @@ L'application supporte 3 modes de thème :
 ## 📝 License
 
 MIT
-
-## 👨‍💻 Développé avec
-
-🤖 Développé avec l'aide de [Claude Code](https://claude.com/claude-code)
