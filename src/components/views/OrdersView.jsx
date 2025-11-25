@@ -57,17 +57,31 @@ export const OrdersView = ({ orders, setOrders, deliveryPartners, openOrderModal
 
     const handleGenerateInvoice = () => {
         if (!selectedOrder) return;
-        generateInvoicePDF(selectedOrder, MOCK_TENANT, true); // true = download
+        try {
+            generateInvoicePDF(selectedOrder, MOCK_TENANT, true); // true = download
+        } catch (error) {
+            console.error('Erreur génération facture:', error);
+            alert('Erreur lors du téléchargement de la facture');
+        }
     };
 
     const handlePreviewInvoice = () => {
         if (!selectedOrder) return;
-        // Clean up previous blob URL if exists
-        if (previewUrl) {
-            URL.revokeObjectURL(previewUrl);
+        try {
+            // Clean up previous blob URL if exists
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+            const url = generateInvoicePDF(selectedOrder, MOCK_TENANT, false); // false = no download
+            if (url) {
+                setPreviewUrl(url);
+            } else {
+                alert('Impossible de générer l\'aperçu de la facture');
+            }
+        } catch (error) {
+            console.error('Erreur aperçu facture:', error);
+            alert('Erreur lors de l\'aperçu de la facture');
         }
-        const url = generateInvoicePDF(selectedOrder, MOCK_TENANT, false); // false = no download, just return blob
-        setPreviewUrl(url);
     };
 
     const handleSendInvoice = (method) => {
@@ -327,16 +341,40 @@ export const OrdersView = ({ orders, setOrders, deliveryPartners, openOrderModal
                 if (previewUrl) URL.revokeObjectURL(previewUrl);
                 setPreviewUrl(null);
             }} title="Aperçu Facture" className="max-w-4xl w-full">
-                <div className="h-[70vh] w-full bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden">
-                    {previewUrl && (
-                        <iframe src={previewUrl} className="w-full h-full" title="Aperçu Facture" />
-                    )}
-                </div>
-                <div className="flex justify-end mt-4">
-                    <Button onClick={() => {
-                        if (previewUrl) URL.revokeObjectURL(previewUrl);
-                        setPreviewUrl(null);
-                    }}>Fermer</Button>
+                <div className="space-y-4">
+                    <div className="h-[70vh] w-full bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+                        {previewUrl ? (
+                            <iframe
+                                src={previewUrl}
+                                className="w-full h-full"
+                                title="Aperçu Facture"
+                                style={{ border: 'none' }}
+                            />
+                        ) : (
+                            <div className="flex items-center justify-center h-full">
+                                <p className="text-slate-500 dark:text-slate-400">Chargement de l'aperçu...</p>
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex justify-between items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                if (selectedOrder) {
+                                    handleGenerateInvoice();
+                                }
+                            }}
+                        >
+                            <Download className="h-4 w-4 mr-2" />
+                            Télécharger PDF
+                        </Button>
+                        <Button onClick={() => {
+                            if (previewUrl) URL.revokeObjectURL(previewUrl);
+                            setPreviewUrl(null);
+                        }}>
+                            Fermer
+                        </Button>
+                    </div>
                 </div>
             </Modal>
         </div>
