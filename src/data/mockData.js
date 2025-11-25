@@ -193,9 +193,17 @@ export const INITIAL_CONVERSATIONS = [
 ];
 
 // 3.6 Commandes & Livraisons (F-ORD / F-DEL)
+// Sociétés de livraison
+export const INITIAL_DELIVERY_COMPANIES = [
+    { id: 1, tenantId: "TEN-001", name: "Express Dakar", phone: "+221 77 100 00 00", coverage: "National", status: "Actif" },
+    { id: 2, tenantId: "TEN-001", name: "Tiak Tiak Services", phone: "+221 77 200 00 00", coverage: "Dakar", status: "Actif" },
+];
+
+// Livreurs (avec sociétés assignées)
 export const INITIAL_DELIVERY_PARTNERS = [
-    { id: 1, tenantId: "TEN-001", name: "Moussa Express", phone: "+221 77 111 22 33", zone: "Dakar & Banlieue", type: "Indépendant" },
-    { id: 2, tenantId: "TEN-001", name: "Tiak Tiak Pro", phone: "+221 77 444 55 66", zone: "National", type: "Agence" },
+    { id: 1, tenantId: "TEN-001", name: "Moussa Express", phone: "+221 77 111 22 33", zone: "Dakar & Banlieue", type: "Indépendant", companyId: null },
+    { id: 2, tenantId: "TEN-001", name: "Abdou Sarr", phone: "+221 77 222 33 44", zone: "Dakar", type: "Agence", companyId: 1 },
+    { id: 3, tenantId: "TEN-001", name: "Fatou Diop", phone: "+221 77 444 55 66", zone: "National", type: "Agence", companyId: 2 },
 ];
 
 export const INITIAL_ORDERS = [

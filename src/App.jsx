@@ -39,6 +39,7 @@ import {
     INITIAL_PRODUCTS,
     INITIAL_SUPPLIERS,
     INITIAL_DELIVERY_PARTNERS,
+    INITIAL_DELIVERY_COMPANIES,
     INITIAL_USERS,
     INITIAL_CONVERSATIONS,
     INITIAL_TENANT
@@ -60,6 +61,7 @@ export default function App() {
     const [products, setProducts] = useState(INITIAL_PRODUCTS);
     const [suppliers, setSuppliers] = useState(INITIAL_SUPPLIERS);
     const [deliveryPartners, setDeliveryPartners] = useState(INITIAL_DELIVERY_PARTNERS);
+    const [deliveryCompanies, setDeliveryCompanies] = useState(INITIAL_DELIVERY_COMPANIES);
     const [conversations, setConversations] = useState(INITIAL_CONVERSATIONS);
     const [users, setUsers] = useState(INITIAL_USERS);
 
@@ -268,9 +270,9 @@ export default function App() {
         switch (activeTab) {
             case 'analytics': return <AnalyticsView orders={orders} products={products} suppliers={suppliers} />;
             case 'inbox': return <InboxView conversations={conversations} setConversations={setConversations} openOrderModal={openOrderModal} clients={clients} />;
-            case 'orders': return <OrdersView orders={orders} setOrders={setOrders} deliveryPartners={deliveryPartners} openOrderModal={openOrderModal} setIsPartnerModalOpen={setIsPartnerModalOpen} />;
+            case 'orders': return <OrdersView orders={orders} setOrders={setOrders} deliveryPartners={deliveryPartners} setDeliveryPartners={setDeliveryPartners} deliveryCompanies={deliveryCompanies} setDeliveryCompanies={setDeliveryCompanies} openOrderModal={openOrderModal} setIsPartnerModalOpen={setIsPartnerModalOpen} />;
             case 'clients': return <ClientsView clients={clients} setIsClientModalOpen={setIsClientModalOpen} />;
-            case 'stock': return <StockView products={products} setProducts={setProducts} suppliers={suppliers} setIsProductModalOpen={setIsProductModalOpen} setIsSupplierModalOpen={setIsSupplierModalOpen} tenant={tenant} />;
+            case 'stock': return <StockView products={products} setProducts={setProducts} suppliers={suppliers} setSuppliers={setSuppliers} setIsProductModalOpen={setIsProductModalOpen} setIsSupplierModalOpen={setIsSupplierModalOpen} tenant={tenant} />;
             case 'settings': return <SettingsView users={users} setUsers={setUsers} tenant={tenant} />;
             default: return <AnalyticsView orders={orders} products={products} suppliers={suppliers} />;
         }
